@@ -1,0 +1,55 @@
+<?php
+
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\FocusController;
+use App\Http\Controllers\Api\GratitudeController;
+use App\Http\Controllers\Api\MorningPageController;
+use App\Http\Controllers\Api\AffirmationController;
+use App\Http\Controllers\Api\GameController;
+use App\Http\Controllers\Api\MuseController;
+use App\Http\Controllers\Api\DecisionController;
+use App\Http\Controllers\Api\ThoughtMapController;
+use App\Http\Controllers\Api\DashboardController;
+
+Route::post('/register', [AuthController::class, 'register']);
+Route::post('/login', [AuthController::class, 'login']);
+// Public: Positive Fortune Cookie
+Route::get('/affirmation/random', [AffirmationController::class, 'getRandom']);
+// Public: Morning Muse creative prompt
+Route::get('/muse/random', [MuseController::class, 'getRandom']);
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/user', [AuthController::class, 'user']);
+
+    // Dashboard Statistics
+    Route::get('/dashboard/stats', [DashboardController::class, 'stats']);
+    Route::get('/dashboard/activity', [DashboardController::class, 'recentActivity']);
+
+    // Daily Focus
+    Route::post('/focus', [FocusController::class, 'store']);
+    Route::get('/focus/today', [FocusController::class, 'getToday']);
+    Route::get('/focus/history', [FocusController::class, 'history']);
+
+    // Gratitude Jar
+    Route::post('/gratitude', [GratitudeController::class, 'store']);
+    Route::get('/gratitude', [GratitudeController::class, 'index']);
+
+    // Morning Page (Brain Dump 3 menit)
+    Route::post('/morning-page', [MorningPageController::class, 'store']);
+
+    // Brain Warm-up Game Score
+    Route::post('/brain-warmup/score', [GameController::class, 'storeScore']);
+    Route::get('/brain-warmup/scores', [GameController::class, 'myTop']);
+    Route::get('/brain-warmup/leaderboard', [GameController::class, 'leaderboard']);
+
+    // Decision Maker
+    Route::apiResource('/decisions', DecisionController::class);
+
+    // Thought Canvas (Mind Mapper)
+    Route::get('/thought-maps', [ThoughtMapController::class, 'index']);
+    Route::post('/thought-maps', [ThoughtMapController::class, 'saveMap']);
+    Route::get('/thought-maps/{map}', [ThoughtMapController::class, 'getMap']);
+    Route::delete('/thought-maps/{map}', [ThoughtMapController::class, 'destroy']);
+});
