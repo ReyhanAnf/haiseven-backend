@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\MuseController;
 use App\Http\Controllers\Api\DecisionController;
 use App\Http\Controllers\Api\ThoughtMapController;
 use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\ProfileController;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
@@ -27,6 +28,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/dashboard/stats', [DashboardController::class, 'stats']);
     Route::get('/dashboard/activity', [DashboardController::class, 'recentActivity']);
 
+    // Profile Management
+    Route::get('/profile', [ProfileController::class, 'show']);
+    Route::put('/profile', [ProfileController::class, 'update']);
+    Route::put('/profile/password', [ProfileController::class, 'updatePassword']);
+    Route::put('/profile/avatar', [ProfileController::class, 'updateAvatar']);
+
     // Daily Focus
     Route::post('/focus', [FocusController::class, 'store']);
     Route::get('/focus/today', [FocusController::class, 'getToday']);
@@ -38,6 +45,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Morning Page (Brain Dump 3 menit)
     Route::post('/morning-page', [MorningPageController::class, 'store']);
+    Route::get('/morning-page', [MorningPageController::class, 'index']);
+    Route::get('/morning-page/{date}', [MorningPageController::class, 'show']);
 
     // Brain Warm-up Game Score
     Route::post('/brain-warmup/score', [GameController::class, 'storeScore']);

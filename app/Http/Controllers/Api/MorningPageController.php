@@ -35,4 +35,32 @@ class MorningPageController extends Controller
             'entry' => $entry,
         ], 201);
     }
+
+    /**
+     * Get all morning pages for the authenticated user
+     */
+    public function index(Request $request)
+    {
+        $entries = MorningPage::where('user_id', $request->user()->id)
+            ->orderBy('date', 'desc')
+            ->get();
+
+        return response()->json($entries);
+    }
+
+    /**
+     * Get a specific morning page by date
+     */
+    public function show(Request $request, $date)
+    {
+        $entry = MorningPage::where('user_id', $request->user()->id)
+            ->where('date', $date)
+            ->first();
+
+        if (!$entry) {
+            return response()->json(['message' => 'Entry not found'], 404);
+        }
+
+        return response()->json($entry);
+    }
 }
