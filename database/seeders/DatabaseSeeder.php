@@ -20,6 +20,8 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             AffirmationSeeder::class,
             CreativePromptSeeder::class,
+            VocabularyWordSeeder::class,
+            LanguagePathSeeder::class,
         ]);
     }
 }

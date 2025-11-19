@@ -8,6 +8,7 @@ use App\Models\ThoughtNode;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class ThoughtMapController extends Controller
 {
@@ -38,7 +39,26 @@ class ThoughtMapController extends Controller
             'nodes.*.position_x' => 'required|numeric',
             'nodes.*.position_y' => 'required|numeric',
             'nodes.*.color' => 'nullable|string|max:20',
+            'nodes.*.connections' => 'nullable|array',
+            'nodes.*.connections.*' => 'integer',
+            'nodes.*.image_url' => 'nullable|string|max:2048',
         ]);
+
+        $user = Auth::user();
+        $user?->refreshSubscriptionStatus();
+
+        $requiresPro = collect($validated['nodes'] ?? [])->contains(function ($node) {
+            $hasConnections = !empty($node['connections']) && is_array($node['connections']);
+            $hasImage = !empty($node['image_url']);
+
+            return $hasConnections || $hasImage;
+        });
+
+        if ($requiresPro && (! $user || ! $user->is_pro)) {
+            return response()->json([
+                'message' => 'Thought Canvas PRO diperlukan untuk menyimpan koneksi atau image nodes.',
+            ], 402);
+        }
 
         DB::beginTransaction();
         try {
@@ -70,13 +90,15 @@ class ThoughtMapController extends Controller
                     'position_x' => $nodeData['position_x'],
                     'position_y' => $nodeData['position_y'],
                     'color' => $nodeData['color'] ?? '#6366f1',
+                    'connections' => $nodeData['connections'] ?? [],
+                    'image_url' => $nodeData['image_url'] ?? null,
                 ]);
             }
 
             DB::commit();
 
             // Return the map with its nodes
-            return response()->json($map->load('nodes'), 200);
+            return response()->json($map->load(['nodes' => fn ($query) => $query->orderBy('id')]));
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json(['message' => 'Failed to save map', 'error' => $e->getMessage()], 500);
@@ -93,7 +115,10 @@ class ThoughtMapController extends Controller
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        return response()->json($map->load('nodes'));
+    $user = Auth::user();
+    $user?->refreshSubscriptionStatus();
+
+    return response()->json($map->load(['nodes' => fn ($query) => $query->orderBy('id')]));
     }
 
     /**
@@ -109,5 +134,36 @@ class ThoughtMapController extends Controller
         $map->delete();
 
         return response()->json(null, 204);
+    }
+
+    /**
+     * Upload an image asset for a thought node (PRO only).
+     */
+    public function uploadNodeImage(Request $request, ThoughtMap $map)
+    {
+        if ($map->user_id !== Auth::id()) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $user = $request->user();
+        $user?->refreshSubscriptionStatus();
+
+        if (! $user || ! $user->is_pro) {
+            return response()->json([
+                'message' => 'Image nodes tersedia untuk pelanggan haiseven PRO.',
+            ], 402);
+        }
+
+        $validated = $request->validate([
+            'image' => 'required|image|max:5120',
+        ]);
+
+        $path = $validated['image']->store('thought-maps/'.$map->id, 'public');
+        $url = Storage::disk('public')->url($path);
+
+        return response()->json([
+            'image_url' => $url,
+            'path' => $path,
+        ], 201);
     }
 }

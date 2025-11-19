@@ -12,6 +12,10 @@ use App\Http\Controllers\Api\DecisionController;
 use App\Http\Controllers\Api\ThoughtMapController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\ProfileController;
+use App\Http\Controllers\Api\TelemetryController;
+use App\Http\Controllers\Api\LanguageLabController;
+use App\Http\Controllers\Api\LanguagePathController;
+use App\Http\Controllers\Api\BlogPostController;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
@@ -19,6 +23,12 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::get('/affirmation/random', [AffirmationController::class, 'getRandom']);
 // Public: Morning Muse creative prompt
 Route::get('/muse/random', [MuseController::class, 'getRandom']);
+// Telemetry events (no auth required)
+Route::post('/telemetry/upgrade-prompt', [TelemetryController::class, 'storeUpgradePromptEvent']);
+
+// Blog posts (public)
+Route::get('/blog-posts', [BlogPostController::class, 'index']);
+Route::get('/blog-posts/{slug}', [BlogPostController::class, 'show']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -61,4 +71,18 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/thought-maps', [ThoughtMapController::class, 'saveMap']);
     Route::get('/thought-maps/{map}', [ThoughtMapController::class, 'getMap']);
     Route::delete('/thought-maps/{map}', [ThoughtMapController::class, 'destroy']);
+    Route::post('/thought-nodes/{node}/image', [ThoughtMapController::class, 'uploadNodeImage']);
+
+    // Language Lab
+    Route::get('/language-lab/vocab', [LanguageLabController::class, 'indexVocab']);
+    Route::post('/language-lab/vocab', [LanguageLabController::class, 'storeVocab']);
+    Route::delete('/language-lab/vocab/{entry}', [LanguageLabController::class, 'destroyVocab'])->whereNumber('entry');
+    Route::get('/language-lab/usage', [LanguageLabController::class, 'usage']);
+    Route::post('/language-lab/grammar-check', [LanguageLabController::class, 'grammarCheck']);
+    Route::get('/language-lab/word-of-the-day', [LanguageLabController::class, 'wordOfTheDay']);
+
+    // Language Path (Duolingo-style curriculum)
+    Route::get('/language/path', [LanguagePathController::class, 'index']);
+    Route::get('/language/lesson/{lesson}', [LanguagePathController::class, 'show']);
+    Route::post('/language/lesson/complete', [LanguagePathController::class, 'complete']);
 });

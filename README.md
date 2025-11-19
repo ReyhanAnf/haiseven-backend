@@ -81,6 +81,108 @@ curl -s -X POST $API"/api/morning-page" \
 	set -Ux CORS_ALLOWED_ORIGINS "http://localhost:3000,https://haiseven.com"
 	```
 
+## Language Modules: Excel Import & Export
+
+Bulk manage Language Modules, their Lessons, and Questions via Excel workbooks using the Filament admin header actions:
+
+Header Actions (LanguageModule resource):
+- Download Template → Generates a 3‑sheet starter workbook (Modules, Lessons, Questions).
+- Export All → Exports current database rows to a workbook (same sheet structure) for backup or editing.
+- Import Excel → Upload a workbook to create/update content. Optionally toggle “Replace Existing” to wipe existing modules before import.
+
+### Workbook Sheet Specifications
+
+1. Modules (sheet name: `Modules`)
+	- `slug` (required, unique, lowercase, hyphen/underscore OK) → becomes primary identifier.
+	- `title` (required)
+	- `description` (optional)
+
+2. Lessons (sheet name: `Lessons`)
+	- `module_slug` (required; must match a module `slug` in Modules sheet or existing DB)
+	- `order` (numeric; ascending order inside module; gaps allowed)
+	- `title` (required)
+	- `content` (optional; markdown/plain)
+
+3. Questions (sheet name: `Questions`)
+	- `lesson_slug` (required; must match a lesson slug: `<module_slug>-<order>` OR the `slug` the system derives. When exporting we output combined slug for clarity.)
+	- `order` (numeric; display order within lesson)
+	- `type` (`multiple_choice` | `text`)
+	- `prompt` (required)
+	- `options` (pipe `|` separated list; required for `multiple_choice`, ignored for `text`)
+	- `answer` (for `multiple_choice`: must exactly match one of the `options`; for `text`: expected answer or can be left blank if subjective)
+	- `explanation` (optional additional feedback shown after answering)
+
+### Sample Template Rows
+
+Modules:
+
+| slug | title | description |
+|------|-------|-------------|
+| basics-en | English Basics | Fundamental starter module |
+
+Lessons:
+
+| module_slug | order | title | content |
+|-------------|-------|-------|---------|
+| basics-en | 1 | Greetings | Intro to common greetings |
+
+Questions:
+
+| lesson_slug | order | type | prompt | options | answer | explanation |
+|-------------|-------|------|--------|---------|--------|-------------|
+| basics-en-1 | 1 | multiple_choice | How do you say "Halo" in English? | hello|goodbye|thanks | hello | "Hello" is a common greeting. |
+| basics-en-1 | 2 | text | Translate: "Terima kasih" |  | thank you |  |
+
+### Import Behavior & Validation
+
+- Transactional: All creates/updates wrap in a DB transaction; critical failures roll back.
+- Error Summary: Only first 3 errors surface in the Filament notification (look at logs for full detail).
+- Slug Collisions: Duplicate `slug` in Modules sheet or conflicts with existing records generate errors (unless replacing existing and previous rows removed).
+- Replace Existing (toggle): When enabled, existing modules (and cascading lessons/questions) are deleted before new rows are inserted.
+- Idempotency: Re‑importing the same workbook without Replace Existing updates matching slugs (future enhancement area—currently behavior is create-first; adjust importer if upsert needed).
+
+### Verification Steps (fish shell)
+
+```fish
+# Clear caches to ensure fresh config & discovery
+php artisan optimize:clear
+php artisan config:clear
+php artisan cache:clear
+
+# Run tests for importer (focus on LanguageModuleImportTest)
+php artisan test --filter=LanguageModuleImportTest
+
+# OPTIONAL: If new migrations added related to language modules
+php artisan migrate
+
+# Start local dev server (if not already running)
+php artisan serve
+```
+
+Then:
+1. Login to Filament admin.
+2. Navigate to Language Modules resource.
+3. Click “Download Template” and open the workbook; fill rows following specs.
+4. Use “Import Excel” to upload your edited file (toggle Replace Existing if you want a full reset).
+5. Confirm success notification with counts (modules_created, lessons_created, questions_created, errors).
+6. (Optional) Use “Export All” to snapshot current state after import.
+
+### Tips & Best Practices
+
+- Keep `slug` stable; changing slugs later breaks external references.
+- Prefer concise `options` (limit <= 6) for usability; separate with a single `|` (avoid trailing separators).
+- Use lowercase slugs; avoid spaces; prefer `a-z0-9-`.
+- For large imports, stage in a staging environment first, review with Export All, then promote.
+- Maintain versioned backups by archiving exported workbooks (e.g., date prefix: `2025-11-18-language-modules.xlsx`).
+
+### Future Enhancements (Optional)
+
+- Upsert semantics (update existing rows instead of erroring).
+- Per-row granular error sheet appended to failed import workbook.
+- Queue-based async import for very large datasets.
+
+---
+
 The rest of the default Laravel README follows.
 
 ## About Laravel

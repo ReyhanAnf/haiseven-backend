@@ -21,5 +21,15 @@ class UserSeeder extends Seeder
                 'password' => 'password',
             ]
         );
+
+        User::updateOrCreate(
+            ['email' => 'admin@haiseven.com'],
+            [
+                'name' => 'Admin User',
+                // Password will be hashed via User model cast
+                'password' => 'password',
+                'is_admin' => true,
+            ]
+        );
     }
 }

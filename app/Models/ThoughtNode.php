@@ -16,12 +16,14 @@ class ThoughtNode extends Model
         'position_y',
         'color',
         'connections',
+        'image_url',
     ];
 
     protected $casts = [
         'position_x' => 'float',
         'position_y' => 'float',
         'connections' => 'array',
+        'image_url' => 'string',
     ];
 
     public function map()

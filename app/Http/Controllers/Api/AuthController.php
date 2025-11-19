@@ -35,9 +35,13 @@ class AuthController extends Controller
             'email' => $validated['email'],
             // User model casts 'password' => 'hashed' so plain text is hashed automatically
             'password' => $validated['password'],
+            'plan' => 'free',
+            'is_pro' => false,
         ]);
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+    $user->refreshSubscriptionStatus();
+
+    $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
             'token' => $token,
@@ -78,6 +82,9 @@ class AuthController extends Controller
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
+        // Ensure subscription status is up to date (expired PRO becomes free)
+        $user->refreshSubscriptionStatus();
+
         return response()->json([
             'token' => $token,
             'token_type' => 'Bearer',
@@ -104,6 +111,11 @@ class AuthController extends Controller
      */
     public function user(Request $request)
     {
-        return response()->json($request->user());
+        $user = $request->user();
+        if ($user instanceof User) {
+            $user->refreshSubscriptionStatus();
+        }
+
+        return response()->json($user);
     }
 }
