@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use Andreia\FilamentNordTheme\FilamentNordThemePlugin;
 use App\Http\Middleware\EnsureAdmin;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -24,7 +25,7 @@ class AdminPanelProvider extends PanelProvider
     public function panel(Panel $panel): Panel
     {
         return $panel
-            ->default()
+            ->plugin(FilamentNordThemePlugin::make())
             ->id('admin')
             ->path('admin')
             ->login()
