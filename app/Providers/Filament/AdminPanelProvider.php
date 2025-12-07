@@ -25,7 +25,7 @@ class AdminPanelProvider extends PanelProvider
     public function panel(Panel $panel): Panel
     {
         return $panel
-            ->plugin(FilamentNordThemePlugin::make())
+            // ->plugin(FilamentNordThemePlugin::make())
             ->id('admin')
             ->path('admin')
             ->login()
