@@ -1,0 +1,69 @@
+@import '../../../../vendor/filament/filament/resources/css/theme.css';
+
+@config '../../../../tailwind.config.js';
+
+/* A. Mesh Gradient Background (Dark Mode) */
+.fi-theme-dark body {
+    background: radial-gradient(circle at 15% 50%, rgba(76, 29, 149, 0.15), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(15, 23, 42, 0.9), transparent 25%);
+    background-color: #0f172a; /* Slate-900 */
+}
+
+/* B. Glassmorphism Sidebar */
+.fi-sidebar {
+    background-color: rgba(15, 23, 42, 0.7) !important; /* Semi-transparent Slate-900 */
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.fi-sidebar-header {
+    background-color: transparent !important;
+}
+
+/* C. Kanban & Card Interactivity */
+/* Targeting filament-kanban records. The class might vary, usually it's .kanban-record or similar.
+   Based on standard filament-kanban, it uses standard Filament components or custom views.
+   Assuming a generic card class or targeting the sortable item. */
+.kanban-record, .fi-kanban-record {
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+}
+
+.kanban-record:hover, .fi-kanban-record:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    border-color: rgba(139, 92, 246, 0.5); /* Violet-500 with opacity */
+}
+
+/* Make badges inside cards pop */
+.kanban-record .fi-badge, .fi-kanban-record .fi-badge {
+    filter: brightness(1.1);
+}
+
+/* D. Global Form Styling */
+.fi-input, .fi-select-input, .fi-textarea {
+    border-radius: 0.75rem !important; /* 12px */
+    padding-top: 0.625rem !important;
+    padding-bottom: 0.625rem !important;
+}
+
+/* Soften borders */
+.fi-input-wrapper {
+    border-radius: 0.75rem !important;
+}
+
+/* E. Login Page Styling */
+.fi-simple-layout {
+    background: radial-gradient(circle at 50% 50%, rgba(76, 29, 149, 0.2), transparent 50%),
+                #0f172a; /* Match body background */
+}
+
+.fi-simple-main {
+    background-color: rgba(30, 41, 59, 0.6) !important; /* Slate-800 semi-transparent */
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 1rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
