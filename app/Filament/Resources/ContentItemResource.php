@@ -23,83 +23,97 @@ class ContentItemResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Metadata')
+                Forms\Components\Grid::make(3)
                     ->schema([
-                        Forms\Components\TextInput::make('title')
-                            ->required()
-                            ->maxLength(255)
-                            ->columnSpanFull(),
-                        Forms\Components\Select::make('batch_id')
-                            ->relationship('batch', 'name')
-                            ->searchable()
-                            ->preload(),
-                        Forms\Components\Select::make('category_id')
-                            ->relationship('category', 'name')
-                            ->searchable()
-                            ->preload(),
-                    ])->columns(2),
-
-                Forms\Components\Section::make('Workflow')
-                    ->schema([
-                        Forms\Components\Select::make('status')
-                            ->options([
-                                'idea' => 'Idea',
-                                'scripting' => 'Scripting',
-                                'dubbing' => 'Dubbing',
-                                'editing' => 'Editing',
-                                'ready_to_upload' => 'Ready to Upload',
-                                'posted' => 'Posted',
-                            ])
-                            ->required()
-                            ->default('idea'),
-                        Forms\Components\TextInput::make('google_drive_link')
-                            ->url()
-                            ->suffixIcon('heroicon-m-link'),
                         Forms\Components\Group::make()
                             ->schema([
-                                Forms\Components\Toggle::make('platform_tiktok')
-                                    ->label('TikTok'),
-                                Forms\Components\Toggle::make('platform_reels')
-                                    ->label('Reels'),
-                                Forms\Components\Toggle::make('platform_shorts')
-                                    ->label('Shorts'),
-                            ])->columns(3),
-                    ])->columns(2),
+                                Forms\Components\Section::make('Content')
+                                    ->schema([
+                                        Forms\Components\TextInput::make('title')
+                                            ->required()
+                                            ->maxLength(255)
+                                            ->columnSpanFull(),
+                                        Forms\Components\RichEditor::make('script_body')
+                                            ->label('Script')
+                                            ->columnSpanFull()
+                                            ->hintAction(
+                                                Forms\Components\Actions\Action::make('copy')
+                                                    ->icon('heroicon-m-clipboard')
+                                                    ->action(function ($livewire, $state) {
+                                                        $livewire->js("window.navigator.clipboard.writeText('{$state}')");
+                                                        Notification::make()->title('Script copied!')->success()->send();
+                                                    })
+                                            ),
+                                    ]),
+                                Forms\Components\Section::make('AI Generated Extras')
+                                    ->schema([
+                                        Forms\Components\KeyValue::make('generated_hooks')
+                                            ->label('Generated Hooks')
+                                            ->keyLabel('Hook Type')
+                                            ->valueLabel('Hook Text')
+                                            ->columnSpanFull(),
+                                        Forms\Components\Textarea::make('generated_captions')
+                                            ->label('Captions & Hashtags')
+                                            ->rows(4)
+                                            ->columnSpanFull()
+                                            ->hintAction(
+                                                Forms\Components\Actions\Action::make('copy')
+                                                    ->icon('heroicon-m-clipboard')
+                                                    ->action(function ($livewire, $state) {
+                                                        $livewire->js("window.navigator.clipboard.writeText('{$state}')");
+                                                        Notification::make()->title('Captions copied!')->success()->send();
+                                                    })
+                                            ),
+                                        Forms\Components\Textarea::make('generated_visual_prompts')
+                                            ->label('Visual Prompts')
+                                            ->rows(4)
+                                            ->columnSpanFull(),
+                                    ])
+                                    ->collapsible(),
+                            ])
+                            ->columnSpan(['lg' => 2]),
 
-                Forms\Components\Section::make('Creative Content')
-                    ->schema([
-                        Forms\Components\RichEditor::make('script_body')
-                            ->label('Script')
-                            ->columnSpanFull()
-                            ->suffixAction(
-                                Forms\Components\Actions\Action::make('copy')
-                                    ->icon('heroicon-m-clipboard')
-                                    ->action(function ($livewire, $state) {
-                                        $livewire->js("window.navigator.clipboard.writeText('{$state}')");
-                                        Notification::make()->title('Script copied!')->success()->send();
-                                    })
-                            ),
-                        Forms\Components\Textarea::make('generated_visual_prompts')
-                            ->label('Visual Prompts')
-                            ->rows(4)
-                            ->columnSpanFull(),
-                        Forms\Components\Textarea::make('generated_captions')
-                            ->label('Captions & Hashtags')
-                            ->rows(4)
-                            ->columnSpanFull()
-                            ->suffixAction(
-                                Forms\Components\Actions\Action::make('copy')
-                                    ->icon('heroicon-m-clipboard')
-                                    ->action(function ($livewire, $state) {
-                                        $livewire->js("window.navigator.clipboard.writeText('{$state}')");
-                                        Notification::make()->title('Captions copied!')->success()->send();
-                                    })
-                            ),
-                        Forms\Components\KeyValue::make('generated_hooks')
-                            ->label('Generated Hooks')
-                            ->keyLabel('Hook Type')
-                            ->valueLabel('Hook Text')
-                            ->columnSpanFull(),
+                        Forms\Components\Group::make()
+                            ->schema([
+                                Forms\Components\Section::make('Status & Organization')
+                                    ->schema([
+                                        Forms\Components\Select::make('status')
+                                            ->options([
+                                                'idea' => 'Idea',
+                                                'scripting' => 'Scripting',
+                                                'dubbing' => 'Dubbing',
+                                                'editing' => 'Editing',
+                                                'ready_to_upload' => 'Ready to Upload',
+                                                'posted' => 'Posted',
+                                            ])
+                                            ->required()
+                                            ->default('idea'),
+                                        Forms\Components\Select::make('batch_id')
+                                            ->relationship('batch', 'name')
+                                            ->searchable()
+                                            ->preload(),
+                                        Forms\Components\Select::make('category_id')
+                                            ->relationship('category', 'name')
+                                            ->searchable()
+                                            ->preload(),
+                                    ]),
+                                Forms\Components\Section::make('Distribution')
+                                    ->schema([
+                                        Forms\Components\TextInput::make('google_drive_link')
+                                            ->url()
+                                            ->suffixIcon('heroicon-m-link'),
+                                        Forms\Components\Group::make()
+                                            ->schema([
+                                                Forms\Components\Toggle::make('platform_tiktok')
+                                                    ->label('TikTok'),
+                                                Forms\Components\Toggle::make('platform_reels')
+                                                    ->label('Reels'),
+                                                Forms\Components\Toggle::make('platform_shorts')
+                                                    ->label('Shorts'),
+                                            ])->columns(1),
+                                    ]),
+                            ])
+                            ->columnSpan(['lg' => 1]),
                     ]),
             ]);
     }
@@ -176,7 +190,7 @@ class ContentItemResource extends Resource
                                 ->label('')
                                 ->html()
                                 ->extraAttributes(['class' => 'prose prose-lg dark:prose-invert max-w-none'])
-                                ->suffixAction(
+                                ->hintAction(
                                     \Filament\Infolists\Components\Actions\Action::make('copyScript')
                                         ->icon('heroicon-m-clipboard')
                                         ->label('Copy Full Script')

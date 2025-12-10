@@ -11,5 +11,14 @@ class CreativePrompt extends Model
 
     protected $fillable = [
         'prompt_text',
+        'domain',
+        'description',
+        'settings',
+        'generated_prompt',
+        'recommended_tool',
+    ];
+
+    protected $casts = [
+        'settings' => 'array',
     ];
 }
